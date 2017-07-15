@@ -1,0 +1,139 @@
+
+package ua.nure.sereda.SummaryTask3.parsers;
+
+import java.io.IOException;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import javax.xml.transform.stream.StreamSource;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import ua.nure.sereda.SummaryTask3.XML;
+import ua.nure.sereda.SummaryTask3.cards.*;
+
+
+public class STAXController extends DefaultHandler {
+
+    private String xmlFile;
+
+    private Cards cards;
+
+    public Cards getCards() {
+        return cards;
+    }
+
+    public STAXController(String xmlFile) {
+        this.xmlFile = xmlFile;
+    }
+
+    /**
+     * Parses XML document with StAX (based on event reader). There is no validation during the
+     * parsing.
+     */
+
+    public void parse() throws ParserConfigurationException, SAXException, IOException, XMLStreamException {
+
+        OldCard oldCard = null;
+        Type type = null;
+
+        String currElement = null;
+
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
+        XMLEventReader eventReader = inputFactory.createXMLEventReader(new StreamSource(xmlFile));
+
+        while (eventReader.hasNext()) {
+            XMLEvent xmlEvent = eventReader.nextEvent();
+            if (xmlEvent.isCharacters() && xmlEvent.asCharacters().isWhiteSpace()) {
+                continue;
+            }
+
+            if (xmlEvent.isStartElement()) {
+                StartElement startElement = xmlEvent.asStartElement();
+                currElement = startElement.getName().getLocalPart();
+
+                if (XML.CARDS.equalsTo(currElement)) {
+                    cards = new Cards();
+                    continue;
+                }
+
+                if (XML.OLDCARD.equalsTo(currElement)) {
+                    oldCard = new OldCard();
+                    continue;
+                }
+
+                if (XML.TYPE.equalsTo(currElement)) {
+                    type = new Type();
+                    Attribute attribute = startElement.getAttributeByName(new QName(XML.SEND.value()));
+                    if (attribute != null) {
+                        type.setSend(Boolean.parseBoolean(attribute.getValue()));
+                    }
+                }
+            }
+
+            if (xmlEvent.isCharacters()) {
+                Characters characters = xmlEvent.asCharacters();
+
+                if (XML.THEMA.equalsTo(currElement) && oldCard != null) {
+                        oldCard.setThema(characters.getData());
+                    continue;
+                }
+
+                if (XML.TYPENAME.equalsTo(currElement) && type != null) {
+                        type.setTypeName(TypeName.fromValue(characters.getData()));
+                    continue;
+                }
+
+                if (XML.COUNTRY.equalsTo(currElement) && oldCard != null) {
+                        oldCard.setCountry(characters.getData());
+                    continue;
+                }
+
+                if (XML.YEAR.equalsTo(currElement) && oldCard != null) {
+                        try {
+                            oldCard.setYear(DatatypeFactory.newInstance().newXMLGregorianCalendar(characters.getData()));
+                        } catch (DatatypeConfigurationException ex) {
+                            System.out.println("DatatypeConfigurationException in yearNode!!!");
+                        }
+                    continue;
+                }
+
+                if (XML.AUTHOR.equalsTo(currElement) && oldCard != null) {
+                        oldCard.setAuthor(characters.getData());
+                    continue;
+                }
+
+                if (XML.VALUABLE.equalsTo(currElement) && oldCard != null)  {
+                        oldCard.setValuable(Valuable.fromValue(characters.getData()));
+                }
+            }
+
+            if (xmlEvent.isEndElement()) {
+                EndElement endElement = xmlEvent.asEndElement();
+                String localName = endElement.getName().getLocalPart();
+
+                if (XML.OLDCARD.equalsTo(localName)) {
+                    cards.getOldCard().add(oldCard);
+                    continue;
+                }
+
+                if (XML.TYPE.equalsTo(localName) && oldCard != null) {
+                    oldCard.setType(type);
+                }
+            }
+        }
+        eventReader.close();
+    }
+}

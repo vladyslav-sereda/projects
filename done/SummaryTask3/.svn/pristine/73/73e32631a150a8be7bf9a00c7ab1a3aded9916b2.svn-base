@@ -1,0 +1,191 @@
+package ua.nure.sereda.SummaryTask3;
+
+import java.io.File;
+import java.io.IOException;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import ua.nure.sereda.SummaryTask3.cards.*;
+
+
+public class DOMController {
+
+    private String xmlFile;
+
+    private Cards cards;
+
+    DOMController(String xmlFile) {
+        this.xmlFile = xmlFile;
+    }
+
+    public Cards getCards() {
+        return cards;
+    }
+
+    /**
+     * Parses XML document.
+     *
+     * @param validation If true validate XML document against its XML schema.
+     */
+    void parse(boolean validation)
+            throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(true);
+        if (validation) {
+            builderFactory.setFeature("http://xml.org/sax/features/validation", true);
+            builderFactory.setFeature("http://apache.org/xml/features/validation/schema", true);
+        }
+        DocumentBuilder docBuilder = builderFactory.newDocumentBuilder();
+        docBuilder.setErrorHandler(new DefaultHandler() {
+            @Override
+            public void error(SAXParseException ex) throws SAXException {
+                if (ex != null) {
+                    throw ex;
+                }
+            }
+        });
+        Document doc = docBuilder.parse(xmlFile);
+        Element rootElement = doc.getDocumentElement();
+        cards = new Cards();
+        NodeList cardNodes = rootElement.getElementsByTagName(XML.OLDCARD.value());
+        for (int i = 0; i < cardNodes.getLength(); i++) {
+            OldCard oldCard = getCards(cardNodes.item(i));
+            cards.getOldCard().add(oldCard);
+        }
+    }
+
+    private OldCard getCards(Node cardNode) {
+        OldCard card = new OldCard();
+        Element cardElement = (Element) cardNode;
+
+        Node themaNode = cardElement.getElementsByTagName(XML.THEMA.value()).item(0);
+        card.setThema(themaNode.getTextContent());
+
+        Node typeNode = cardElement.getElementsByTagName(XML.TYPE.value()).item(0);
+        Type type = getType(typeNode);
+        card.setType(type);
+
+        Node countryNode = cardElement.getElementsByTagName(XML.COUNTRY.value()).item(0);
+        card.setCountry(countryNode.getTextContent());
+
+        Node yearNode = cardElement.getElementsByTagName(XML.YEAR.value()).item(0);
+        try {
+            card.setYear(DatatypeFactory.newInstance().newXMLGregorianCalendar(yearNode.getTextContent()));
+        } catch (DatatypeConfigurationException ex) {
+            System.out.println("DatatypeConfigurationException in yearNode!!!");
+        }
+        Node authorNode = cardElement.getElementsByTagName(XML.AUTHOR.value()).item(0);
+        if (authorNode != null) {
+            card.setAuthor(authorNode.getTextContent());
+        }
+
+        Node valuableNode = cardElement.getElementsByTagName(XML.VALUABLE.value()).item(0);
+        Valuable valuable = Valuable.fromValue(valuableNode.getTextContent());
+        card.setValuable(valuable);
+
+        return card;
+    }
+
+    private Type getType(Node typeNode) {
+        Type type = new Type();
+        Element typeElement = (Element) typeNode;
+
+        String send = typeElement.getAttribute(XML.SEND.value());
+        type.setSend(Boolean.valueOf(send));
+
+        Node typeNameNode = typeElement.getElementsByTagName(XML.TYPENAME.value()).item(0);
+        String name = typeNameNode.getTextContent();
+        type.setTypeName(TypeName.fromValue(name));
+
+        return type;
+    }
+
+    private static Document getDocument(Cards cards) throws ParserConfigurationException {
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(true);
+        DocumentBuilder docBuilder = builderFactory.newDocumentBuilder();
+        Document document = docBuilder.newDocument();
+        document.setXmlStandalone(true);
+
+        Element cardsElement = document.createElement(XML.CARDS.value());
+        cardsElement.setAttributeNS(
+                "http://www.w3.org/2001/XMLSchema-instance",
+                "xsi:noNamespaceSchemaLocation",
+                "input-no-targetNamespace.xsd");
+        document.appendChild(cardsElement);
+
+
+        for (OldCard oldCard : cards.getOldCard()) {
+            Element oldCardElement = document.createElement(XML.OLDCARD.value());
+            cardsElement.appendChild(oldCardElement);
+
+            Element themeElement = document.createElement(XML.THEMA.value());
+            themeElement.setTextContent(oldCard.getThema());
+            oldCardElement.appendChild(themeElement);
+
+            Element typeNameElement = document.createElement(XML.TYPENAME.value());
+            typeNameElement.setTextContent(oldCard.getType().getTypeName().value());
+
+            Element typeElement = document.createElement(XML.TYPE.value());
+            typeElement.setAttribute(XML.SEND.value(), String.valueOf(oldCard.getType().isSend()));
+            typeElement.appendChild(typeNameElement);
+            oldCardElement.appendChild(typeElement);
+
+            Element countryElement = document.createElement(XML.COUNTRY.value());
+            countryElement.setTextContent(oldCard.getCountry());
+            oldCardElement.appendChild(countryElement);
+
+            Element yearElement = document.createElement(XML.YEAR.value());
+            yearElement.setTextContent(String.valueOf(oldCard.getYear()));
+            oldCardElement.appendChild(yearElement);
+
+            if (oldCard.getAuthor() != null) {
+                Element authorElement = document.createElement(XML.AUTHOR.value());
+                authorElement.setTextContent(oldCard.getAuthor());
+                oldCardElement.appendChild(authorElement);
+            }
+
+            Element valuableElement = document.createElement(XML.VALUABLE.value());
+            valuableElement.setTextContent(oldCard.getValuable().value());
+            oldCardElement.appendChild(valuableElement);
+        }
+        return document;
+    }
+
+    static void saveToXML(Cards cards, String xmlFile)
+            throws ParserConfigurationException, TransformerException {
+        saveToXML(getDocument(cards), xmlFile);
+    }
+
+    /**
+     * Save DOM to XML.
+     *
+     * @param document DOM to be saved.
+     * @param xmlFile  Output XML file name.
+     */
+    private static void saveToXML(Document document, String xmlFile)
+            throws TransformerException {
+        StreamResult result = new StreamResult(new File(xmlFile));
+        TransformerFactory transFactory = TransformerFactory.newInstance();
+        javax.xml.transform.Transformer transformer = transFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.transform(new DOMSource(document), result);
+    }
+}

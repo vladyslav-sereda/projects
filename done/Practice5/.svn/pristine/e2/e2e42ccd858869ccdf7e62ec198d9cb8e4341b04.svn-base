@@ -1,0 +1,86 @@
+package ua.nure.sereda.Practice5;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+public class Part6 extends Thread {
+
+    private static final Object MONITOR = new Object();
+
+    private static final int THREADS_NUMBER = 10;
+
+    private static final int COLUMNS = 20;
+
+    private static final int EOL_LENGTH = System.lineSeparator().length();
+
+    private static String fileName = "Part6.txt";
+
+    private RandomAccessFile out;
+
+    private Part6() {
+        try {
+            out = new RandomAccessFile(fileName, "rw");
+        } catch (FileNotFoundException e) {
+            System.out.println("no file!");
+        }
+    }
+
+    private void writer() throws IOException {
+        Thread[] threads = new Thread[THREADS_NUMBER];
+        for (int i = 0; i < threads.length; i++) {
+            int finalI = i;
+            threads[i] = new Thread() {
+                public void run() {
+                    synchronized (MONITOR) {
+                        try {
+                            out.seek(finalI * (COLUMNS + EOL_LENGTH));
+                            if (finalI != 0) {
+                                out.writeBytes(System.lineSeparator());
+                            }
+                            for (int i = 0; i < COLUMNS; i++) {
+                                out.write('0' + finalI);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
+            threads[i].start();
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String reader() throws IOException {
+        StringBuilder res = new StringBuilder();
+        out.seek(0);
+        int temp;
+        while (true) {
+            temp = out.read();
+            if (temp == -1) {
+                break;
+            }
+            res.append((char) temp);
+        }
+        return res.toString();
+    }
+
+    private void closeStream() throws IOException {
+        out.close();
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        if (new File(fileName).delete()) {
+            Part6 part6 = new Part6();
+            part6.writer();
+            System.out.print(part6.reader());
+            part6.closeStream();
+        }
+    }
+}

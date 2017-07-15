@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><Cards xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="input-no-targetNamespace.xsd">
+<OldCard>
+<Thema>Mountains</Thema>
+<Type Send="false">
+<TypeName>Normal</TypeName>
+</Type>
+<Country>Ukraine</Country>
+<Year>1973</Year>
+<Author>Balashov</Author>
+<Valuable>Historical</Valuable>
+</OldCard>
+<OldCard>
+<Thema>Exposition</Thema>
+<Type Send="true">
+<TypeName>Advertising</TypeName>
+</Type>
+<Country>Germany</Country>
+<Year>2001</Year>
+<Valuable>Thematic</Valuable>
+</OldCard>
+<OldCard>
+<Thema>People</Thema>
+<Type Send="true">
+<TypeName>Normal</TypeName>
+</Type>
+<Country>USA</Country>
+<Year>2018</Year>
+<Author>Sereda</Author>
+<Valuable>Collection</Valuable>
+</OldCard>
+</Cards>

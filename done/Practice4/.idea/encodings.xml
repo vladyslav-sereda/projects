@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" native2AsciiForPropertiesFiles="true" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/part1.txt" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/part3.txt" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/part4.txt" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/part4Tests.txt" charset="windows-1251" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>

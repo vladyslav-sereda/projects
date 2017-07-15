@@ -1,0 +1,57 @@
+
+package ua.nure.sereda.SummaryTask3;
+
+import java.util.Collections;
+import java.util.Comparator;
+
+import ua.nure.sereda.SummaryTask3.cards.Cards;
+import ua.nure.sereda.SummaryTask3.cards.OldCard;
+
+
+public class Sorter {
+
+    /**
+     * Sorts cards by type name
+     */
+    private static final Comparator<OldCard> SORT_CARDS_BY_TYPE_NAME = Comparator.comparing(o -> o.getType().getTypeName());
+
+    /**
+     * Sorts cards by year
+     */
+    private static final Comparator<OldCard> SORT_CARDS_BY_YEAR = Comparator.comparingInt(o -> o.getYear().getYear());
+
+    /**
+     * Sorts cards by valuable
+     */
+    private static final Comparator<OldCard> SORT_CARDS_BY_VALUABLE = Comparator.comparing(OldCard::getValuable);
+
+    /**
+     * Sorts cards by send attribute
+     */
+    private static final Comparator<OldCard> SORT_CARDS_BY_SEND = (o1, o2) -> {
+        if (o1.getType().isSend() && !o2.getType().isSend()) {
+            return -1;
+        }
+        if (o2.getType().isSend() && !o1.getType().isSend()) {
+            return 1;
+        }
+        return 0;
+    };
+
+    static void setSortCardsBySend(Cards cards) {
+        Collections.sort(cards.getOldCard(), SORT_CARDS_BY_SEND);
+    }
+
+    public static void setSortCardsByValuable(Cards cards) {
+        Collections.sort(cards.getOldCard(), SORT_CARDS_BY_VALUABLE);
+    }
+
+    static void setSortCardsByYear(Cards cards) {
+        Collections.sort(cards.getOldCard(), SORT_CARDS_BY_YEAR);
+    }
+
+    static void setSortCardsByTypeName(Cards cards) {
+        Collections.sort(cards.getOldCard(), SORT_CARDS_BY_TYPE_NAME);
+    }
+}
+

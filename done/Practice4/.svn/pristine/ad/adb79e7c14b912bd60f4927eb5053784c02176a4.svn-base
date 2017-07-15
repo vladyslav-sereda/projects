@@ -1,0 +1,62 @@
+package ua.nure.sereda.Practice4;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+class Parser implements Iterable<String> {
+
+    private String txt;
+
+    Parser(String fileName, String encoding) throws IOException {
+        BufferedReader buffReader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), encoding));
+        StringBuilder sbild = new StringBuilder();
+        String string;
+        while ((string = buffReader.readLine()) != null) {
+            sbild.append(string);
+        }
+        buffReader.close();
+        txt = sbild.toString();
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+        return new regexIterator();
+    }
+
+    private class regexIterator implements Iterator<String> {
+
+        private final static String REGEXP = "(?sU)(\\p{javaUpperCase}.*?\\.)";
+        private Pattern patt;
+        private Matcher match;
+        private int index;
+
+        regexIterator() {
+            patt = Pattern.compile(REGEXP);
+            match = patt.matcher(txt);
+            index = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return match.find(index);
+        }
+
+        @Override
+        public String next() {
+            hasNext();
+            index = match.end();
+            return match.group();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove");
+        }
+    }
+
+}

@@ -1,0 +1,58 @@
+package ua.nure.sereda.Practice5;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+
+public class Spam extends Thread {
+
+    private static void runThreads(int sleepTime[], String messages[]) {
+        final Thread[] threads = new Thread[messages.length];
+        for (int i = 0; i < threads.length; i++) {
+            final int miliSec = sleepTime[i];
+            final String messName = messages[i];
+            threads[i] = new Thread() {
+                public void run() {
+                    while (!isInterrupted()) {
+                        try {
+                            sleep(miliSec);
+                        } catch (InterruptedException e) {
+                            return;
+                        }
+                        System.out.println(messName + " ==> " + miliSec + "ms");
+                    }
+                }
+            };
+            threads[i].start();
+
+        }
+
+        new Thread() {
+            public void run() {
+                byte[] chars = new byte[16];
+                int length;
+                try {
+                    do {
+                        while (true) {
+                            if (!((length = System.in.read(chars)) == -1)) {
+                                break;
+                            }
+                        }
+                    } while (!(new String(chars, 0, length, Charset.defaultCharset()).equals(System.getProperty("line.separator"))));
+                } catch (IOException ex) {
+                    System.out.println(ex);
+                }
+                for (Thread th : threads) {
+                    th.interrupt();
+                }
+            }
+        }.start();
+    }
+
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        final int[] time4Sleep = {300, 500, 700, 1000, 1300};
+        final String[] messages = {"first", "second", "third", "fourth", "fifth"};
+        runThreads(time4Sleep, messages);
+        sleep(100);
+    }
+}

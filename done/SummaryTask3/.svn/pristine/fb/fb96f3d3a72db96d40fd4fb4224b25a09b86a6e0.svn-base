@@ -1,0 +1,45 @@
+package ua.nure.sereda.SummaryTask3;
+
+import ua.nure.sereda.SummaryTask3.parsers.DOMController;
+import ua.nure.sereda.SummaryTask3.parsers.SAXController;
+import ua.nure.sereda.SummaryTask3.parsers.STAXController;
+import ua.nure.sereda.SummaryTask3.cards.Cards;
+
+
+public class Main {
+    private static void usage() {
+        System.out.println("Usage:\njava -jar ST3ExampleSimple.jar xmlFileName");
+        System.out.println("java Main xmlFileName");
+    }
+
+    public static void main(String[] args) throws Exception {
+        if (args.length != 1) {
+            usage();
+            return;
+        }
+
+        String xmlFile = args[0];
+        System.out.println("Input ==> " + xmlFile);
+
+        DOMController domController = new DOMController(xmlFile);
+        domController.parse(true);
+        Cards cards = domController.getCards();
+        Sorter.setSortCardsByYear(cards);
+        DOMController.saveToXML(cards, "output.dom.xml");
+        System.out.println("Output ==> output.dom.xml");
+
+        SAXController saxController = new SAXController(xmlFile);
+        saxController.parse(true);
+        cards = saxController.getCards();
+        Sorter.setSortCardsBySend(cards);
+        DOMController.saveToXML(cards, "output.sax.xml");
+        System.out.println("Output ==> output.sax.xml");
+
+		STAXController staxController = new STAXController(xmlFile);
+		staxController.parse();
+		cards = staxController.getCards();
+		Sorter.setSortCardsByTypeName(cards);
+		DOMController.saveToXML(cards, "output.stax.xml");
+		System.out.println("Output ==> output.stax.xml");
+    }
+}

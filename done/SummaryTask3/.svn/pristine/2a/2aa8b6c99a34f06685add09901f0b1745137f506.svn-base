@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  XML schema WO target namespace -->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+	<xsd:element name="Cards">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="OldCard" type="OldCard" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="OldCard">
+		<xsd:sequence>
+			<xsd:element name="Thema" type="xsd:string"/>
+			<xsd:element name="Type" type="Type"/>
+			<xsd:element name="Country" type="xsd:string"/>
+			<xsd:element name="Year" type="xsd:gYear"/>
+			<xsd:element name="Author" type="xsd:Name" minOccurs="0"/>
+			<xsd:element name="Valuable" type="Valuable"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Type">
+		<xsd:all>
+			<xsd:element name="TypeName" type="TypeName"/>
+		</xsd:all>
+		<xsd:attribute name="Send" type="xsd:boolean" default="false"/>
+	</xsd:complexType>
+
+	<xsd:simpleType name="TypeName">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Congratulatory"/>
+			<xsd:enumeration value="Advertising"/>
+			<xsd:enumeration value="Normal"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="Valuable">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Historical"/>
+			<xsd:enumeration value="Thematic"/>
+			<xsd:enumeration value="Collection"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>
